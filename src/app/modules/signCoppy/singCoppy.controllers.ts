@@ -3,7 +3,11 @@ import sendResponse from "../../utils/sendRespons"
 import httpStatus from "http-status"
 import multer from 'multer';
 import { signSevres } from "./signCoppy.services"
-import { pdfModel } from "./signCoppy.model";
+import { SinCopyModel, pdfModel } from "./signCoppy.model";
+import mongoose from "mongoose";
+import jwt from 'jsonwebtoken'
+import config from "../../config";
+import axios from "axios";
 // Multer configuration for file upload
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -100,33 +104,22 @@ const getPayments = catchAsync(async (req,res) => {
   const uploadPdf = catchAsync(async (req, res) => {
     const name = req.file.originalname;
     const data = req.file.buffer;
+    const query = req.params.id as string
+    
 
-    try {
-        // Create a new instance of the pdfModel
-        const pdf = new pdfModel({
-            name: name,
-            data: data
-        });
-
-        // Save the PDF document to MongoDB
-        const result = await pdf.save();
-
-        // Send response
+        const results = await SinCopyModel.updateOne( { _id: new mongoose.Types.ObjectId(query) },{
+          fileName:name,
+          state:'approve',
+          data:data
+         })
+       
         sendResponse(res, {
             statusCode: httpStatus.OK,
             success: true,
             message: "PDF uploaded successfully",
-            data: result
+            data: results
         });
-    } catch (error) {
-        // Handle errors
-        sendResponse(res, {
-            statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-            success: false,
-            message: "Failed to upload PDF",
-            error: error.message
-        });
-    }
+   
 });
 const getpdf = catchAsync(async (req,res) => {
   
@@ -139,11 +132,10 @@ const getpdf = catchAsync(async (req,res) => {
     })
 })
 const getThePDfFile = catchAsync(async (req, res) => {
+  const id = req.query.id
   const pdfName = req.params.pdfName;
-
-  try {
-    // Fetch the PDF file from the database by name
-    const pdf = await pdfModel.findOne({ name: pdfName });
+  console.log(id);
+    const pdf = await SinCopyModel.findOne({ _id: new mongoose.Types.ObjectId(id) });
 
     // Check if the PDF file exists
     if (!pdf) {
@@ -151,16 +143,14 @@ const getThePDfFile = catchAsync(async (req, res) => {
     }
 
     res.set('Content-Type', 'application/pdf');
-res.set('Content-Disposition', `attachment; filename="${pdfName}"`);
-res.send(pdf.data);
-  } catch (error) {
-    console.error('Error fetching PDF:', error);
-    res.status(500).json({ error: 'Failed to fetch PDF' });
-  }
+    res.set('Content-Disposition', `attachment; filename="${pdfName}"`);
+    res.send(pdf.data);
+  
 });
 
   const getALlSinCopy = catchAsync(async (req,res) => {
     const email = req.query.email as string
+    
     const data = null
     if(email){
       const results = await signSevres.getAllSignCopy(email)
@@ -286,6 +276,77 @@ res.send(pdf.data);
       })
     }
   })
+  const createCurrentBalance = catchAsync(async (req,res) => {
+  
+    const results = await signSevres.createCurrentBalance(req.body)
+    sendResponse(res,{
+        statusCode: httpStatus.OK ,
+        success:true,
+        message:"current balance added successfully",
+        data:results
+      })
+  })
+  const getCurrentCharge = catchAsync(async (req,res) => {
+  const name = req.params.name
+    const results = await signSevres.getCurrentCharge(name)
+    sendResponse(res,{
+        statusCode: httpStatus.OK ,
+        success:true,
+        message:"current balance get successfully",
+        data:results
+      })
+  })
+  const generateToken = catchAsync(async (req,res) => {
+   
+      const user = req.body.user; 
+
+      if (!user || !user.id || !user.username || !user.email) {
+        return res.status(400).json({ message: 'Missing required user fields' });
+      }
+
+ 
+   const payload = {
+       id: user.id,
+       username: user.username,
+       email: user.email
+   };
+
+  
+   const token = jwt.sign(payload, config.SECRET_KEY, { expiresIn: "10d" }); 
+
+   sendResponse(res,{
+    statusCode: httpStatus.OK ,
+    success:true,
+    message:"current balance get successfully",
+    data:token
+  })
+  
+  })
+  const getServerCoppy = catchAsync(async (req, res) => {
+    const {nid,dob} = req.body
+console.log(req.body);
+         const firstResponse = await axios.get(`https://api.xtasin.top/sv.php?nid=${nid}&dob=${dob}`);
+      
+         let result = firstResponse.data;
+ 
+         if (result) {
+             const secondResponse = await axios.get(`https://apiportal.gallego24.xyz/nid?ApiKey=RnVCTEpSYWtJSUw0QVdVM01YVFF4MGwxY0VkQlpqUXpjVkpFV0RoQlVFMUxObmM0Tm5jOVBRPT0=&nid=${nid}&dob=${dob}`);
+             
+             result = {
+                 firstApiData: firstResponse.data,
+                 secondApiData: secondResponse.data
+             };
+         }
+        sendResponse(res, {
+            statusCode: httpStatus.OK,
+            success: true,
+            message: "server cappy retrieve successfully",
+            data: result
+        });
+  
+});
+
+ 
   export const signCopyControllers = {
     creteSign,
     cretePayments,
@@ -303,5 +364,9 @@ res.send(pdf.data);
     updatesinCoppy,
     uploadPdf,
     getpdf,
-    getThePDfFile
+    getThePDfFile,
+    createCurrentBalance,
+    getCurrentCharge,
+    generateToken,
+    getServerCoppy
   }

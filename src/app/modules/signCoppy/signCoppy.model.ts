@@ -10,7 +10,8 @@ const SinCopySchema: Schema = new Schema({
     signCopyDetails: { type: String, },
     userEmail : {type:String},
     state:{type:String, default:'pending'},
-    fileName:{type:String}
+    fileName:{type:String},
+    data:Buffer
 });
 const BioMatricShema: Schema = new Schema({
     identifier:{type:String,},
@@ -71,9 +72,9 @@ const bkashPaymentSchema: Schema = new Schema({
     userEmail: { type: String, },
     phoneNumber: { type: Number, },
     transactionId: { type: String, },
-    amount:{type:Number},
-    state:{type:String},
-    id:{type:String}
+    amount:Number,
+    state:String,
+    id:String
 });
 const setPaymentsSchema: Schema = new Schema({
   
@@ -87,8 +88,13 @@ const setPaymentsSchema: Schema = new Schema({
     name: String,
     data: Buffer
   });
+ const currentCharge = new mongoose.Schema({
+    componentsName: String,
+    amount: Number
+  });
 
   export const pdfModel = mongoose.model('PDF', pdfSchema);
+  export const currentChargeModel = mongoose.model('currentCharge', currentCharge);
 
 // sing copy model
 export const SinCopyModel = mongoose.model<sinCoppy>('SinCopy', SinCopySchema);

@@ -8,7 +8,7 @@ import config from "./app/config";
 import router from "./app/routes";
 // parser
 app.use(express.json())
-app.use(cors())
+app.use(cors({ origin: ['https://24-7-service.vercel.app/'], credentials: true }));
 
 
 

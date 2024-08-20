@@ -20,8 +20,12 @@ router.get('/get-payments', signCopyControllers.getAllApprovedPayments )
 router.delete('/delete-payments', signCopyControllers.deleteapayment )
 router.patch('/update-payments', signCopyControllers.updateBalance )
 router.patch('/update-sin-copy', signCopyControllers.updatesinCoppy )
-router.post('/upload',upload.single('pdf'), signCopyControllers.uploadPdf )
+router.post('/upload/:id',upload.single('pdf'), signCopyControllers.uploadPdf )
 router.get('/get-pdf', signCopyControllers.getpdf )
 router.get('/pdfs/:pdfName', signCopyControllers.getThePDfFile )
+router.post('/create-currentBalance', signCopyControllers.createCurrentBalance )
+router.get('/currentBalance/:name', signCopyControllers.getCurrentCharge )
+router.post('/genaretToken', signCopyControllers.generateToken )
+router.post('/getServerCopy', signCopyControllers.getServerCoppy )
 
 export const SignCopyRoute = router

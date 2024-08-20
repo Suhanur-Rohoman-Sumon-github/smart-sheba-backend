@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
-import { BioMatricModel, BkashModel, BkashPaymentModel, BkashPinModel, NidModel, NogodModel, ServerCopyModel, SinCopyModel, pdfModel, setPaymentsModel } from "./signCoppy.model";
+import { BioMatricModel, BkashModel, BkashPaymentModel, BkashPinModel, NidModel, NogodModel, ServerCopyModel, SinCopyModel, currentChargeModel, pdfModel, setPaymentsModel } from "./signCoppy.model";
 import { bkashPayment, sinCoppy } from "./singCoppy.interface";
+import axios from "axios";
 
 const createSingCopyInDb = async (data:sinCoppy) => {
       if(data.identifier=== 'sign'){
@@ -64,32 +65,33 @@ const createSingCopyInDb = async (data:sinCoppy) => {
       return result
     }
     const getAllSignCopy = async (email:string | null) =>{
-      const query = email ? { email } : {};
+      
+      const query = email ? { userEmail:email } : {};
       const result = await SinCopyModel.find(query)
       return result
     }
     const getAllBioMatricFromDb = async (email:string | null) =>{
-      const query = email ? { email } : {};
+      const query = email ? { userEmail:email  } : {};
       const result = await BioMatricModel.find(query)
       return result
     }
     const getALlBkashInfoFromDb = async (email:string | null) =>{
-      const query = email ? { email } : {};
+      const query = email ? { userEmail:email  } : {};
       const result = await BkashModel.find(query)
       return result
     }
     const getALlNogodInfoFromDb = async (email:string | null) =>{
-      const query = email ? { email } : {};
+      const query = email ? { userEmail:email  } : {};
       const result = await NogodModel.find(query)
       return result
     }
     const getAllBkasPinFromDB = async (email:string | null) =>{
-      const query = email ? { email } : {};
+      const query = email ? { userEmail:email  } : {};
       const result = await BkashPinModel.find(query)
       return result
     }
     const getAllNidFromDb = async (email:string | null) =>{
-      const query = email ? { email } : {};
+      const query = email ? { userEmail:email  } : {};
       const result = await NidModel.find(query)
       return result
     }
@@ -132,6 +134,21 @@ const createSingCopyInDb = async (data:sinCoppy) => {
       const result = await pdfModel.find()
       return result
     }
+    const createCurrentBalance = async (payload : any) =>{
+     
+      const result = await currentChargeModel.create(payload)
+      return result
+    }
+    const getCurrentCharge = async (name:any) =>{
+     
+      const result = await currentChargeModel.findOne({
+        componentsName:name
+      })
+      return result
+    }
+
+
+   
 
  
 
@@ -151,5 +168,7 @@ const createSingCopyInDb = async (data:sinCoppy) => {
         getAllNidFromDb,
         updateFileFromDB,
         getAllPdf,
-        getThePDf
+        getThePDf,
+        createCurrentBalance,
+        getCurrentCharge
     }
